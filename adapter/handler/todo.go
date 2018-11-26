@@ -16,29 +16,36 @@ import (
 	validator "gopkg.in/go-playground/validator.v9"
 )
 
-type TodoHandler struct {
+type TodoHandler interface {
+	List(c echo.Context) error
+	Show(c echo.Context) error
+	New(c echo.Context) error
+	Create(c echo.Context) error
+}
+
+type TodoHandlerImpl struct {
 	validate       *validator.Validate
 	userRepository repository.UserRepository
 	todoPresenter  presenter.TodoPresenter
 }
 
 func NewTodoHandler(db *gorm.DB) TodoHandler {
-	return TodoHandler{
+	return TodoHandlerImpl{
 		validate:       validator.New(),
 		userRepository: database.NewUserRepository(db),
 		todoPresenter:  presenter.NewTodoPresenter(),
 	}
 }
 
-func (h TodoHandler) sessionRepository(c echo.Context) repository.SessionRepository {
+func (h TodoHandlerImpl) sessionRepository(c echo.Context) repository.SessionRepository {
 	return database.NewSessionRepository(session.Default(c))
 }
 
-func (h TodoHandler) todoUseCase(c echo.Context) usecase.TodoUseCase {
+func (h TodoHandlerImpl) todoUseCase(c echo.Context) usecase.TodoUseCase {
 	return usecase.NewTodoUseCase(h.userRepository, h.sessionRepository(c))
 }
 
-func (h TodoHandler) List(c echo.Context) error {
+func (h TodoHandlerImpl) List(c echo.Context) error {
 	todoUseCase := h.todoUseCase(c)
 	output := h.todoPresenter.List(todoUseCase.List())
 
@@ -48,7 +55,7 @@ func (h TodoHandler) List(c echo.Context) error {
 	return c.Render(http.StatusFound, "todo/list", output.Context)
 }
 
-func (h TodoHandler) Show(c echo.Context) error {
+func (h TodoHandlerImpl) Show(c echo.Context) error {
 	idStr := c.Param("id")
 	failureURL := "/"
 
@@ -68,7 +75,7 @@ func (h TodoHandler) Show(c echo.Context) error {
 	return c.Render(http.StatusOK, "todo/show", output.Context)
 }
 
-func (h TodoHandler) New(c echo.Context) error {
+func (h TodoHandlerImpl) New(c echo.Context) error {
 	todoUseCase := h.todoUseCase(c)
 	output := h.todoPresenter.New(todoUseCase.New())
 
@@ -80,7 +87,7 @@ func (h TodoHandler) New(c echo.Context) error {
 	return c.Render(http.StatusOK, "todo/new", output.Context)
 }
 
-func (h TodoHandler) Create(c echo.Context) error {
+func (h TodoHandlerImpl) Create(c echo.Context) error {
 	p, err := dto.ValidatedTodoParam(c, h.validate)
 	if err != nil {
 		fmt.Println(err)

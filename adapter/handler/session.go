@@ -16,35 +16,43 @@ import (
 	validator "gopkg.in/go-playground/validator.v9"
 )
 
-type SessionHandler struct {
+type SessionHandler interface {
+	GetSignUp(c echo.Context) error
+	GetSignIn(c echo.Context) error
+	GetSignOut(c echo.Context) error
+	PostSignUp(c echo.Context) error
+	PostSignIn(c echo.Context) error
+}
+
+type SessionHandlerImpl struct {
 	validate         *validator.Validate
 	userRepository   repository.UserRepository
 	sessionPresenter presenter.SessionPresenter
 }
 
 func NewSessionHandler(db *gorm.DB) SessionHandler {
-	return SessionHandler{
+	return SessionHandlerImpl{
 		validate:         validator.New(),
 		userRepository:   database.NewUserRepository(db),
 		sessionPresenter: presenter.NewSessionPresenter(),
 	}
 }
 
-func (h SessionHandler) sessionRepository(c echo.Context) repository.SessionRepository {
+func (h SessionHandlerImpl) sessionRepository(c echo.Context) repository.SessionRepository {
 	return database.NewSessionRepository(session.Default(c))
 }
 
-func (h SessionHandler) sessionUseCase(c echo.Context) usecase.SessionUseCase {
+func (h SessionHandlerImpl) sessionUseCase(c echo.Context) usecase.SessionUseCase {
 	return usecase.NewSessionUseCase(h.userRepository, h.sessionRepository(c))
 }
 
-func (h SessionHandler) GetSignUp(c echo.Context) error {
+func (h SessionHandlerImpl) GetSignUp(c echo.Context) error {
 	mapData := map[string]interface{}{}
 	mapData["CSRF"] = c.Get("csrf").(string)
 	return c.Render(http.StatusFound, "session/signup", mapData)
 }
 
-func (h SessionHandler) GetSignOut(c echo.Context) error {
+func (h SessionHandlerImpl) GetSignOut(c echo.Context) error {
 	sessionRepository := h.sessionRepository(c)
 	err := sessionRepository.Clear()
 	if err != nil {
@@ -53,13 +61,13 @@ func (h SessionHandler) GetSignOut(c echo.Context) error {
 	return c.Redirect(http.StatusFound, "/")
 }
 
-func (h SessionHandler) GetSignIn(c echo.Context) error {
+func (h SessionHandlerImpl) GetSignIn(c echo.Context) error {
 	mapData := map[string]interface{}{}
 	mapData["CSRF"] = c.Get("csrf").(string)
 	return c.Render(http.StatusOK, "session/signin", mapData)
 }
 
-func (h SessionHandler) PostSignUp(c echo.Context) error {
+func (h SessionHandlerImpl) PostSignUp(c echo.Context) error {
 	p, err := dto.ValidatedSessionParam(c, h.validate)
 	if err != nil {
 		fmt.Println(err)
@@ -76,7 +84,7 @@ func (h SessionHandler) PostSignUp(c echo.Context) error {
 	return c.Redirect(http.StatusFound, "/")
 }
 
-func (h SessionHandler) PostSignIn(c echo.Context) error {
+func (h SessionHandlerImpl) PostSignIn(c echo.Context) error {
 	p, err := dto.ValidatedSessionParam(c, h.validate)
 	if err != nil {
 		fmt.Println(err)
