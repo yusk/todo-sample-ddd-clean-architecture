@@ -15,9 +15,11 @@ type User struct {
 }
 
 func (u User) ToUser() entity.User {
+	var todos []*entity.Todo
 	return entity.User{
 		ID:       u.ID,
 		Email:    u.Email,
 		Password: u.Password,
+		Todos:    todos,
 	}
 }

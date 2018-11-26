@@ -38,10 +38,7 @@ func Router(db *gorm.DB, store session.RedisStore) {
 	}))
 
 	sessionHandler := handler.NewSessionHandler(db)
-
-	// e.GET("/sample/string", handler.SampleString)
-	// e.GET("/sample/json", handler.SampleJSON)
-	// e.GET("/sample/html", handler.SampleHTML)
+	todoHandler := handler.NewTodoHandler(db)
 
 	e.GET("/signup", sessionHandler.GetSignUp)
 	e.POST("/signup", sessionHandler.PostSignUp)
@@ -49,10 +46,10 @@ func Router(db *gorm.DB, store session.RedisStore) {
 	e.GET("/signout", sessionHandler.GetSignOut)
 	e.POST("/signin", sessionHandler.PostSignIn)
 
-	// e.GET("/", handler.TodoList)
-	// e.GET("/:id", handler.TodoShow)
-	// e.POST("/", handler.TodoCreate)
-	// e.GET("/new", handler.TodoNew)
+	e.GET("/", todoHandler.List)
+	e.GET("/:id", todoHandler.Show)
+	e.POST("/", todoHandler.Create)
+	e.GET("/new", todoHandler.New)
 
 	e.Start(":9090")
 }
