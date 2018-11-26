@@ -1,0 +1,7 @@
+{{ define "todo/list" }}
+<h1>Todo List</h1>
+{{ range .Todos }}
+<p><a href="{{.ID}}">{{ .Title }}</a></p>
+{{ end }}
+<a href="/new">new</a>
+{{ end }}

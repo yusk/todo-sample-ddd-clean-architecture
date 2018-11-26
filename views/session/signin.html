@@ -1,0 +1,9 @@
+{{ define "session/signin" }}
+<h1>signin</h1>
+<form method="POST">
+    <input type="hidden" name="_csrf" value="{{ .CSRF }}">
+    <input type="text" name="email" placeholder="email">
+    <input type="text" name="password" placeholder="password">
+    <button>submit</button>
+</form>
+{{ end }}

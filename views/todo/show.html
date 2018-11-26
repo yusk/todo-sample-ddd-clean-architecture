@@ -1,0 +1,11 @@
+{{ define "todo/show" }}
+<h1>Todo Show</h1>
+{{ with .Todo }}
+<p>{{ .Title }}</p>
+<p>{{ .Content }}</p>
+<p>{{ .IsDone }}</p>
+<p>{{ .CreatedAt }}</p>
+<p>{{ .UpdatedAt }}</p>
+{{ end }}
+<a href="/">戻る</a>
+{{ end }}
